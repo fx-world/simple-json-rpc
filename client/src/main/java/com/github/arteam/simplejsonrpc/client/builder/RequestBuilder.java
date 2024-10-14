@@ -68,7 +68,18 @@ public class RequestBuilder<T> extends AbstractBuilder {
      * @param mapper    mapper for JSON processing
      */
     public RequestBuilder(Transport transport, ObjectMapper mapper) {
-        super(transport, mapper);
+    	this(transport, mapper, true);
+    }
+    
+    /**
+     * Creates a new default request builder without actual parameters
+     *
+     * @param transport    transport for request performing
+     * @param mapper       mapper for JSON processing
+     * @param checkVersion check the version number of json request or not
+     */
+    public RequestBuilder(Transport transport, ObjectMapper mapper, boolean checkVersion) {
+        super(transport, mapper, checkVersion);
         id = NullNode.instance;
         objectParams = mapper.createObjectNode();
         arrayParams = mapper.createArrayNode();
@@ -307,17 +318,20 @@ public class RequestBuilder<T> extends AbstractBuilder {
             JsonNode version = responseNode.get(JSONRPC);
             JsonNode id = responseNode.get(ID);
 
-            if (version == null) {
-                throw new IllegalStateException("Not a JSON-RPC response: " + responseNode);
+            if (checkVersion) {
+	            if (version == null) {
+	                throw new IllegalStateException("Not a JSON-RPC response: " + responseNode);
+	            }
+	            if (!version.asText().equals(VERSION_2_0)) {
+	                throw new IllegalStateException("Bad protocol version in a response: " + responseNode);
+	            }
             }
-            if (!version.asText().equals(VERSION_2_0)) {
-                throw new IllegalStateException("Bad protocol version in a response: " + responseNode);
-            }
+            
             if (id == null) {
                 throw new IllegalStateException("Unspecified id in a response: " + responseNode);
             }
 
-            if (error == null) {
+            if (error == null || error instanceof NullNode) {
                 if (result != null) {
                     return mapper.convertValue(result, javaType);
                 } else {
@@ -342,7 +356,7 @@ public class RequestBuilder<T> extends AbstractBuilder {
             throw new IllegalArgumentException("Unable convert " + requestNode + " to JSON", e);
         }
         try {
-            textResponse = transport.pass(textRequest);
+            textResponse = transport.pass(nodeValue(id), textRequest);
         } catch (IOException e) {
             throw new IllegalStateException("I/O error during a request processing", e);
         }

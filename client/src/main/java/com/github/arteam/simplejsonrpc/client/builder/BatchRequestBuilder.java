@@ -76,7 +76,18 @@ public class BatchRequestBuilder<K, V> extends AbstractBuilder {
      * @param mapper    mapper for JSON processing
      */
     public BatchRequestBuilder(Transport transport, ObjectMapper mapper) {
-        this(transport, mapper, new ArrayList<>(), new HashMap<>(), null, null);
+        this(transport, mapper, new ArrayList<>(), new HashMap<>(), null, null, true);
+    }
+    
+    /**
+     * Creates a new batch request builder in an initial state
+     *
+     * @param transport transport for request performing
+     * @param mapper    mapper for JSON processing
+     * @param checkVersion check the version number of json request or not
+     */
+    public BatchRequestBuilder(Transport transport, ObjectMapper mapper, boolean checkVersion) {
+        this(transport, mapper, new ArrayList<>(), new HashMap<>(), null, null, checkVersion);
     }
 
     /**
@@ -91,8 +102,28 @@ public class BatchRequestBuilder<K, V> extends AbstractBuilder {
      */
     public BatchRequestBuilder(Transport transport, ObjectMapper mapper,
                                List<ObjectNode> requests, Map<Object, JavaType> returnTypes,
-                               @Nullable Class<K> keysType, @Nullable JavaType returnType) {
-        super(transport, mapper);
+                               @Nullable Class<K> keysType, @Nullable JavaType returnType
+                               ) {
+        this(transport, mapper, requests, returnTypes, keysType, returnType, true);
+    }
+    
+    /**
+     * Creates a new batch request builder as a part of a chain
+     *
+     * @param transport   transport for request performing
+     * @param mapper      mapper for JSON processing
+     * @param requests    new requests
+     * @param returnTypes new return types
+     * @param keysType    new key type
+     * @param returnType  new values type
+     * @param checkVersion check the version number of json request or not
+     */
+    public BatchRequestBuilder(Transport transport, ObjectMapper mapper,
+                               List<ObjectNode> requests, Map<Object, JavaType> returnTypes,
+                               @Nullable Class<K> keysType, @Nullable JavaType returnType,
+                               boolean checkVersion
+                               ) {
+        super(transport, mapper, checkVersion);
         this.requests = requests;
         this.returnTypes = returnTypes;
         this.keysType = keysType;
@@ -473,7 +504,7 @@ public class BatchRequestBuilder<K, V> extends AbstractBuilder {
      */
     private String executeRequest() {
         try {
-            return transport.pass(mapper.writeValueAsString(requests));
+            return transport.pass(requestIds(), mapper.writeValueAsString(requests));
         } catch (IOException e) {
             throw new IllegalStateException("I/O error during a request processing", e);
         }
@@ -576,16 +607,4 @@ public class BatchRequestBuilder<K, V> extends AbstractBuilder {
     List<ObjectNode> getRequests() {
         return requests;
     }
-
-    private static Object nodeValue(JsonNode id) {
-        if (id.isLong()) {
-            return id.longValue();
-        } else if (id.isInt()) {
-            return id.intValue();
-        } else if (id.isTextual()) {
-            return id.textValue();
-        }
-        throw new IllegalArgumentException("Wrong id=" + id);
-    }
-
 }

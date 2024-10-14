@@ -18,14 +18,16 @@ import java.util.Map;
 public class AbstractBuilder {
 
     // Protocol constants
-    protected static final String VERSION_2_0 = "2.0";
-    protected static final String RESULT = "result";
-    protected static final String ERROR = "error";
-    protected static final String JSONRPC = "jsonrpc";
-    protected static final String ID = "id";
-    protected static final String METHOD = "method";
-    protected static final String PARAMS = "params";
+	public static final String VERSION_2_0 = "2.0";
+	public static final String RESULT = "result";
+	public static final String ERROR = "error";
+	public static final String JSONRPC = "jsonrpc";
+    public static final String ID = "id";
+    public static final String METHOD = "method";
+    public static final String PARAMS = "params";
 
+    protected boolean checkVersion = true;
+    
     /**
      * Transport for performing a text request and returning a text response
      */
@@ -37,8 +39,13 @@ public class AbstractBuilder {
     protected final ObjectMapper mapper;
 
     public AbstractBuilder(Transport transport, ObjectMapper mapper) {
+        this(transport, mapper, true);
+    }
+    
+    public AbstractBuilder(Transport transport, ObjectMapper mapper, boolean checkVersion) {
         this.transport = transport;
         this.mapper = mapper;
+        this.checkVersion = checkVersion;
     }
 
     /**
@@ -91,4 +98,20 @@ public class AbstractBuilder {
         }
         return requestNode;
     }
+    
+	@SuppressWarnings("boxing")
+	protected Object nodeValue(JsonNode id) {
+		if (id.isLong()) {
+			return id.longValue();
+		} else if (id.isInt()) {
+			return id.intValue();
+		} else if (id.isTextual()) {
+			return id.textValue();
+		}
+		throw new IllegalArgumentException("Wrong id=" + id);
+	}
+
+	public void checkVersion(boolean checkVersion) {
+		this.checkVersion = checkVersion;
+	}
 }

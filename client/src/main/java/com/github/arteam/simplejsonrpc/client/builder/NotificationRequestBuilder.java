@@ -24,8 +24,19 @@ public class NotificationRequestBuilder {
      * @param mapper    mapper for JSON processing
      */
     public NotificationRequestBuilder(Transport transport, ObjectMapper mapper) {
-        requestBuilder = new RequestBuilder<>(transport, mapper);
+    	this(transport, mapper, true);
     }
+    
+    /**
+     * Creates a new notification request builder
+     *
+     * @param transport transport for request performing
+     * @param mapper    mapper for JSON processing
+     * @param checkVersion check the version number of json request or not
+     */
+    public NotificationRequestBuilder(Transport transport, ObjectMapper mapper, boolean checkVersion) {
+        requestBuilder = new RequestBuilder<>(transport, mapper, checkVersion);
+    }    
 
     /**
      * Creates a new notification request builder as a chain of builders

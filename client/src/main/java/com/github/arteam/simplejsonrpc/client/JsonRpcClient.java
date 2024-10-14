@@ -27,6 +27,8 @@ public class JsonRpcClient {
      * JSON mapper for conversion between JSON and Java types
      */
     private final ObjectMapper mapper;
+    
+    private boolean checkVersion = true;
 
     /**
      * Constructs a new JSON-RPC client with a specified transport
@@ -44,8 +46,20 @@ public class JsonRpcClient {
      * @param mapper    JSON mapper
      */
     public JsonRpcClient(Transport transport, ObjectMapper mapper) {
+        this(transport, mapper, true);
+    }
+    
+    /**
+     * Constructs a new JSON-RPC client with a specified transport and user-definder JSON mapper
+     *
+     * @param transport transport implementation
+     * @param mapper    JSON mapper
+     * @param checkVersion check the version number of json request or not
+     */
+    public JsonRpcClient(Transport transport, ObjectMapper mapper, boolean checkVersion) {
         this.transport = transport;
         this.mapper = mapper;
+        this.checkVersion = checkVersion;
     }
 
     /**
@@ -54,7 +68,7 @@ public class JsonRpcClient {
      * @return request builder
      */
     public RequestBuilder<Object> createRequest() {
-        return new RequestBuilder<>(transport, mapper);
+        return new RequestBuilder<>(transport, mapper, checkVersion);
     }
 
     /**
@@ -63,7 +77,7 @@ public class JsonRpcClient {
      * @return notification request builder
      */
     public NotificationRequestBuilder createNotification() {
-        return new NotificationRequestBuilder(transport, mapper);
+        return new NotificationRequestBuilder(transport, mapper, checkVersion);
     }
 
     /**
@@ -72,7 +86,7 @@ public class JsonRpcClient {
      * @return batch request builder
      */
     public BatchRequestBuilder<?, ?> createBatchRequest() {
-        return new BatchRequestBuilder<>(transport, mapper);
+        return new BatchRequestBuilder<>(transport, mapper, checkVersion);
     }
 
     /**
@@ -85,7 +99,7 @@ public class JsonRpcClient {
     @SuppressWarnings("unchecked")
     public <T> T onDemand(Class<T> clazz) {
         return (T) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{clazz},
-                new ObjectApiBuilder(clazz, transport, mapper, null, null));
+                new ObjectApiBuilder(clazz, transport, mapper, null, null, checkVersion));
     }
 
     /**
@@ -100,7 +114,7 @@ public class JsonRpcClient {
     @SuppressWarnings("unchecked")
     public <T> T onDemand(Class<T> clazz, IdGenerator<?> idGenerator) {
         return (T) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{clazz},
-                new ObjectApiBuilder(clazz, transport, mapper, null, idGenerator));
+                new ObjectApiBuilder(clazz, transport, mapper, null, idGenerator, checkVersion));
     }
 
     /**
@@ -116,7 +130,7 @@ public class JsonRpcClient {
     @SuppressWarnings("unchecked")
     public <T> T onDemand(Class<T> clazz, ParamsType paramsType) {
         return (T) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{clazz},
-                new ObjectApiBuilder(clazz, transport, mapper, paramsType, null));
+                new ObjectApiBuilder(clazz, transport, mapper, paramsType, null, checkVersion));
     }
 
     /**
@@ -134,7 +148,15 @@ public class JsonRpcClient {
     @SuppressWarnings("unchecked")
     public <T> T onDemand(Class<T> clazz, ParamsType paramsType, IdGenerator<?> idGenerator) {
         return (T) Proxy.newProxyInstance(getClass().getClassLoader(), new Class[]{clazz},
-                new ObjectApiBuilder(clazz, transport, mapper, paramsType, idGenerator));
+                new ObjectApiBuilder(clazz, transport, mapper, paramsType, idGenerator, checkVersion));
     }
+
+	public boolean isCheckVersion() {
+		return checkVersion;
+	}
+
+	public void setCheckVersion(boolean checkVersion) {
+		this.checkVersion = checkVersion;
+	}
 
 }

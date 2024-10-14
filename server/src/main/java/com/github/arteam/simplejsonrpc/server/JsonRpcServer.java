@@ -62,6 +62,8 @@ public class JsonRpcServer {
     private static final Logger log = LoggerFactory.getLogger(JsonRpcServer.class);
     private static final String VERSION = "2.0";
 
+    private boolean checkVersion = true;
+    
     private final ObjectMapper mapper;
 
     /**
@@ -245,12 +247,12 @@ public class JsonRpcServer {
         String requestMethod = request.method();
         String jsonrpc = request.jsonrpc();
         ValueNode id = request.id();
-        if (jsonrpc == null || requestMethod == null) {
+        if ((jsonrpc == null && checkVersion) || requestMethod == null) {
             log.error("Not a JSON-RPC request: " + request);
             return ErrorResponse.of(id, INVALID_REQUEST);
         }
 
-        if (!jsonrpc.equals(VERSION)) {
+        if (checkVersion && !jsonrpc.equals(VERSION)) {
             log.error("Not a JSON_RPC 2.0 request: " + request);
             return ErrorResponse.of(id, INVALID_REQUEST);
         }
@@ -446,4 +448,12 @@ public class JsonRpcServer {
     private interface JsonNodeSupplier {
         JsonNode get() throws IOException;
     }
+
+	public boolean isCheckVersion() {
+		return checkVersion;
+	}
+
+	public void setCheckVersion(boolean checkVersion) {
+		this.checkVersion = checkVersion;
+	}
 }
