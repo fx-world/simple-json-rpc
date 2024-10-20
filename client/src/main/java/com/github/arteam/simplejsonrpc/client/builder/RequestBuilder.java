@@ -101,7 +101,24 @@ public class RequestBuilder<T> extends AbstractBuilder {
     private RequestBuilder(Transport transport, ObjectMapper mapper, String method,
                            ValueNode id, ObjectNode objectParams, ArrayNode arrayParams,
                            JavaType javaType) {
-        super(transport, mapper);
+    	this(transport, mapper, method, id, objectParams, arrayParams, javaType, true);
+    }
+    
+    /**
+     * Creates new builder as part of a chain of builders to a full-initialized type-safe builder
+     *
+     * @param transport    new transport
+     * @param mapper       new mapper
+     * @param method       new method
+     * @param id           new id
+     * @param objectParams new object params
+     * @param arrayParams  new array params
+     * @param javaType     new response type
+     */
+    private RequestBuilder(Transport transport, ObjectMapper mapper, String method,
+                           ValueNode id, ObjectNode objectParams, ArrayNode arrayParams,
+                           JavaType javaType, boolean checkVersion) {
+        super(transport, mapper, checkVersion);
         this.method = method;
         this.id = id;
         this.objectParams = objectParams;
@@ -116,7 +133,7 @@ public class RequestBuilder<T> extends AbstractBuilder {
      * @return new builder
      */
     public RequestBuilder<T> id(Long id) {
-        return new RequestBuilder<>(transport, mapper, method, new LongNode(id), objectParams, arrayParams, javaType);
+        return new RequestBuilder<>(transport, mapper, method, new LongNode(id), objectParams, arrayParams, javaType, checkVersion);
     }
 
     /**
@@ -126,7 +143,7 @@ public class RequestBuilder<T> extends AbstractBuilder {
      * @return new builder
      */
     public RequestBuilder<T> id(Integer id) {
-        return new RequestBuilder<>(transport, mapper, method, new IntNode(id), objectParams, arrayParams, javaType);
+        return new RequestBuilder<>(transport, mapper, method, new IntNode(id), objectParams, arrayParams, javaType, checkVersion);
     }
 
     /**
@@ -136,7 +153,7 @@ public class RequestBuilder<T> extends AbstractBuilder {
      * @return new builder
      */
     public RequestBuilder<T> id(String id) {
-        return new RequestBuilder<>(transport, mapper, method, new TextNode(id), objectParams, arrayParams, javaType);
+        return new RequestBuilder<>(transport, mapper, method, new TextNode(id), objectParams, arrayParams, javaType, checkVersion);
     }
 
     /**
@@ -146,7 +163,7 @@ public class RequestBuilder<T> extends AbstractBuilder {
      * @return new builder
      */
     public RequestBuilder<T> method(String method) {
-        return new RequestBuilder<>(transport, mapper, method, id, objectParams, arrayParams, javaType);
+        return new RequestBuilder<>(transport, mapper, method, id, objectParams, arrayParams, javaType, checkVersion);
     }
 
     /**
@@ -171,7 +188,7 @@ public class RequestBuilder<T> extends AbstractBuilder {
     public RequestBuilder<T> param(String name, Object value) {
         ObjectNode newObjectParams = objectParams.deepCopy();
         newObjectParams.set(name, mapper.valueToTree(value));
-        return new RequestBuilder<>(transport, mapper, method, id, newObjectParams, arrayParams, javaType);
+        return new RequestBuilder<>(transport, mapper, method, id, newObjectParams, arrayParams, javaType, checkVersion);
     }
 
     /**
@@ -182,7 +199,7 @@ public class RequestBuilder<T> extends AbstractBuilder {
      * @return new builder
      */
     public RequestBuilder<T> params(Object... values) {
-        return new RequestBuilder<>(transport, mapper, method, id, objectParams, arrayParams(values), javaType);
+        return new RequestBuilder<>(transport, mapper, method, id, objectParams, arrayParams(values), javaType, checkVersion);
     }
 
     /**
@@ -194,7 +211,7 @@ public class RequestBuilder<T> extends AbstractBuilder {
      */
     public <NT> RequestBuilder<NT> returnAs(Class<NT> responseType) {
         return new RequestBuilder<>(transport, mapper, method, id, objectParams, arrayParams,
-                TypeFactory.defaultInstance().constructType(responseType));
+                TypeFactory.defaultInstance().constructType(responseType), checkVersion);
     }
 
     /**
@@ -206,7 +223,7 @@ public class RequestBuilder<T> extends AbstractBuilder {
      */
     public <E> RequestBuilder<List<E>> returnAsList(Class<E> elementType) {
         return new RequestBuilder<>(transport, mapper, method, id, objectParams, arrayParams,
-                mapper.getTypeFactory().constructCollectionType(List.class, elementType));
+                mapper.getTypeFactory().constructCollectionType(List.class, elementType), checkVersion);
     }
 
     /**
