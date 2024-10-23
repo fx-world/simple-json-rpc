@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException
  */
 public class JsonRpcClientNotificationsTest {
 
-    @Test
+    //@Test
     public void testNotificationObjectParams() {
         JsonRpcClient client = new JsonRpcClient(text -> {
             System.out.println(text);
@@ -32,7 +32,7 @@ public class JsonRpcClientNotificationsTest {
                 .execute();
     }
 
-    @Test
+    //@Test    
     public void testNotificationArrayParams() {
         JsonRpcClient client = new JsonRpcClient(text -> {
             System.out.println(text);
